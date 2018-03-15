@@ -7,8 +7,9 @@ class Results(Table):
     author = Col('Author of the Book')
     genre = Col('Genre')
     summary = Col('Summary')
-    #edit = LinkCol('Edit', 'edit', url_kwargs=dict(id='id'))
-    #delete = LinkCol('Delete', 'delete', url_kwargs=dict(id='id'))
+    borrow = LinkCol('Borrow', 'borrow', url_kwargs=dict(id='id'))
+    edit = LinkCol('Edit', 'edit', url_kwargs=dict(id='id'))
+    delete = LinkCol('Delete', 'delete', url_kwargs=dict(id='id'))
 
 class MyBooks(Table):
     id = Col('Id', show=False)
@@ -19,3 +20,4 @@ class MyBooks(Table):
     summary = Col('Summary')
     edit = LinkCol('Edit', 'edit', url_kwargs=dict(id='id'))
     delete = LinkCol('Delete', 'delete', url_kwargs=dict(id='id'))
+    status = LinkCol('Returned', 'borrow', url_kwargs=dict(id='id'))

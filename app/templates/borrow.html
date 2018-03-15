@@ -1,0 +1,25 @@
+<doctype html>
+        <title>Peer to Peer Library Database</title>
+        <a href="{{ url_for('index') }}">Home</a>
+        <h2>Book</h2>
+
+        <body>
+                <p>{{ message }}</p>
+            </body>
+        {% from "_formhelpers.html" import render_field %}
+        <form method=post>
+                <p><p><input type=submit value={{key}}>
+            </form>               
+            <body>
+                    {% with messages = get_flashed_messages() %}
+                      {% if messages %}
+                        <ul class=flashes>
+                        {% for message in messages %}
+                          <li>{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                      {% endif %}
+                    {% endwith %}
+                    </form>
+                </body>
+                </html>

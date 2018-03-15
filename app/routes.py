@@ -1,15 +1,17 @@
 from app import app, db
 from db_setup import init_db, db_session
-from forms import BookSearchForm, BookForm
+from forms import BookSearchForm, BookForm, Borrow
 from flask import flash, render_template, request, redirect, url_for
 from flask_login import LoginManager, logout_user, login_required, login_user, current_user
+from sqlalchemy import Column, Date, Integer, String
 
 login = LoginManager()
 login.init_app(app)
 login.login_view = 'login'
 
+from datetime import datetime
 from tables import Results, MyBooks
-from models import User, Book, Lender, Book_History
+from models import User, Book, Book_History
 from login import LoginForm
 from werkzeug.urls import url_parse
 
@@ -40,21 +42,23 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+last_search = BookSearchForm(search='')
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
     search = BookSearchForm(request.form)
+    last_search = search
     if request.method == 'POST':
         return search_results(search)
  
     return render_template('index.html', form=search)
  
- 
+
 @app.route('/results')
-def search_results(search):
+def search_results(search = None):
     results = []
     search_string = search.data['search']
- 
+
     if search_string:
         if search.data['select'] == 'Lender':
             qry = db.session.query(Book).filter(
@@ -90,43 +94,75 @@ def search_results(search):
 
 @app.route('/mybooks')
 @login_required
-def mybooks(search):
+def mybooks():
     results = []
     qry = db.session.query(Book).filter(
-        Book.lender.contains(current_user.username.data))
+        Book.lender.contains(current_user.username))
 
     results = qry.all()
  
     if not results:
-        flash("Sorry, You haven't added. Please add the books you want to lend in Add book")
+        flash("Sorry, You don't have books. Please add the books you want to lend in New Book")
         return redirect('/index')
     else:
         # display results
-        table = Results(results)
+        table = MyBooks(results)
         table.border = True
         return render_template('mybooks.html', table=table)
 
-
-def save_changes(book, form, new=False):
+def add_book_history(book, user, book_status):
     """
     Save the changes to the database
     """
     # Get data from form and assign it to the correct attributes
     # of the SQLAlchemy table object
-    login = LoginForm()
-    book.lender = form.lender.data
-    book.book_name = form.book_name.data
-    book.author = form.author.data
-    book.genre = form.genre.data
-    book.summary = form.summary.data
+    book_history = Book_History(book_id=book.id,
+        book_name = book.book_name, borrowee = current_user, 
+        status = book_status, borrow_time=datetime.utcnow())
+    db.session.add(book_history)
+    db.session.commit() 
 
- 
-    if new:
-        # Add the new book to the database
-        db.session.add(book)
- 
-    # commit the data to the database
-    db.session.commit()
+@app.route('/borrow/<int:id>', methods=['GET', 'POST'])
+@login_required
+def borrow(id):
+    qry = db.session.query(Book).filter(
+                Book.id==id)
+    book = qry.first()
+    book_history_qry = db.session.query(Book_History).filter(
+                    Book_History.book_id.contains(book.id))
+    book_history = book_history_qry.all()
+    borrowed_book_qry = db.session.query(Book_History).filter(
+                    (Book_History.book_id.contains(book.id))&
+                    (Book_History.status.contains('Borrowed'))) 
+    borrowed_book = borrowed_book_qry.first()    
+    if borrowed_book:
+        if book.lender == current_user.username:      
+            if request.method == 'POST':
+                borrowed_book.status='Returned'
+                borrowed_book.borrow_time=datetime.utcnow()
+                db.session.add(borrowed_book)
+                db.session.commit()
+                flash('Book is made available for others to borrow')
+                return redirect('/mybooks')
+            message = """If {} has returned the book press the Returned 
+                button to make it Available""".format(borrowed_book.borrower)
+            return render_template('borrow.html', key='Returned', message = message)
+        else:
+            flash(borrowed_book.book_name+' has been Borrowed by ' + borrowed_book.borrower)
+            return search_results(last_search)
+
+    else:
+        if book.lender == current_user.username or book_history is None:
+            flash('At Present No one has borrowed this book')
+            return redirect('/mybooks')  
+        else:  
+            if request.method == 'POST': 
+                add_book_history(book, current_user, 'Borrowed')       
+                flash('No one has borrowed this Book')
+                return redirect('/index')
+            message = """Press the borrow button and collect the 
+                    book from {}""".format(book.lender)
+            return render_template('borrow.html', key='Borrow', message = message)
 
 @app.route('/new_book', methods=['GET', 'POST'])
 @login_required
@@ -141,12 +177,34 @@ def new_book():
             author = form.author.data, genre = form.genre.data,
             summary = form.summary.data, lendee=current_user)
         db.session.add(book)
-        db.session.commit()
+        db.session.commit() 
+        add_book_history(book, current_user, 'Added')
         #save_changes(book, form, new=True)
         flash('Book added successfully!')
-        return redirect('/index')
+        return redirect('/mybooks')
     return render_template('new_book.html', form=form)
+
+def save_changes(book, form, user, new=False):
+    """
+    Save the changes to the database
+    """
+    # Get data from form and assign it to the correct attributes
+    # of the SQLAlchemy table object
+    login = LoginForm()
+    book.lendee = current_user
+    book.book_name = form.book_name.data
+    book.author = form.author.data
+    book.genre = form.genre.data
+    book.summary = form.summary.data
+
  
+    if new:
+        # Add the new book to the database
+        db.session.add(book)
+ 
+    # commit the data to the database
+    db.session.commit()
+
 @app.route('/item/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit(id):
@@ -158,9 +216,10 @@ def edit(id):
         form = BookForm(formdata=request.form, obj=book)
         if request.method == 'POST' and form.validate():
             # save edits
-            save_changes(book, form)
+            save_changes(book, form, current_user)
+
             flash('Book updated successfully!')
-            return redirect('/')
+            return redirect('/mybooks')
         return render_template('edit_book.html', form=form)
     else:
         return 'Error loading #{id}'.format(id=id)
@@ -184,7 +243,7 @@ def delete(id):
             db.session.commit()
  
             flash('Book deleted successfully!')
-            return redirect('/index')
+            return redirect('/mybooks')
         return render_template('delete_book.html', form=form)
     else:
         return 'Error deleting #{id}'.format(id=id)

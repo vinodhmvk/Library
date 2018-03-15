@@ -1,4 +1,4 @@
-from wtforms import Form, StringField, SelectField
+from wtforms import Form, StringField, SelectField, SubmitField
 from wtforms.validators import DataRequired
 
 class BookSearchForm(Form):
@@ -16,3 +16,5 @@ class BookForm(Form):
     genre = StringField('Genre')
     summary = StringField('Summary of the Book')
     
+class Borrow(Form):
+    borrow = SubmitField(label='Change')

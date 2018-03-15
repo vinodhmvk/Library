@@ -1,7 +1,8 @@
 <doctype html>
         <title>Edit Book - Peer to Peer Library Database</title>
         <h2>Edit Book</h2>
-         
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('mybooks') }}">Back to My Books</a>
         {% from "_formhelpers.html" import render_field %}
         <form method=post>
             <dl>
@@ -10,5 +11,5 @@
                 {{ render_field(form.genre) }}
                 {{ render_field(form.summary) }}
             </dl>
-            <p><input type=submit value=Delete>
+            <p><input type=submit value=Submit>
         </form>
