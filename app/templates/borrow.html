@@ -1,8 +1,7 @@
-<doctype html>
-        <title>Peer to Peer Library Database</title>
-        <a href="{{ url_for('index') }}">Home</a>
-        <h2>Book</h2>
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
+{% block app_content %}
         <body>
                 <p>{{ message }}</p>
             </body>
@@ -10,16 +9,7 @@
         <form method=post>
                 <p><p><input type=submit value={{key}}>
             </form>               
-            <body>
-                    {% with messages = get_flashed_messages() %}
-                      {% if messages %}
-                        <ul class=flashes>
-                        {% for message in messages %}
-                          <li>{{ message }}</li>
-                        {% endfor %}
-                        </ul>
-                      {% endif %}
-                    {% endwith %}
-                    </form>
-                </body>
+
                 </html>
+<br>
+{% endblock %}

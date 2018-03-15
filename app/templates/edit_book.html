@@ -1,8 +1,8 @@
-<doctype html>
-        <title>Edit Book - Peer to Peer Library Database</title>
-        <h2>Edit Book</h2>
-        <a href="{{ url_for('index') }}">Home</a>
-        <a href="{{ url_for('mybooks') }}">Back to My Books</a>
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<h3>{{ ('Books you want to edit') }}</h3>
         {% from "_formhelpers.html" import render_field %}
         <form method=post>
             <dl>
@@ -13,3 +13,5 @@
             </dl>
             <p><input type=submit value=Submit>
         </form>
+        <br>
+        {% endblock %}

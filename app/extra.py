@@ -17,8 +17,11 @@ class Lender(db.Model):
 
     def __repr__(self):
 """
-USER_DICT = {'varun':'vnathan@kabbage.com',
-        'ravi':'rchahar@kabbage.com',
+from app import db
+from app.models import User
+USER_DICT = {'vinodh':'vmotupalli@kabbage.com',
+    'varun':'vnathan@kabbage.com',
+        'ravi':'rcahar@kabbage.com',
         'nitin':'nrawat@kabbage.com'}
 for name, mailid in USER_DICT.items():
     u = User(username=name, email=mailid)

@@ -1,34 +1,21 @@
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
+{% block app_content %}
 <doctype html>
-    <head>
-        <title>Peer to Peer Library Database</title>
-    </head>
-
-    <a href="{{ url_for('index') }}">Home</a>
-    <a href="{{ url_for('logout') }}">Logout</a>
-    <a href="{{ url_for('mybooks') }}">MyBooks</a>
-
     <h2>Peer to Peer Library</h2>
     <h3>Hi, {{ current_user.username }}!</h3>
-    <p><p>
 
-      <a href="{{ url_for('.new_book') }}"> New Book </a>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul class=flashes>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-     
+    <a class="btn btn-success" href="{{ url_for('.new_book') }}" role="button">{{ ('Add New Book') }}</a>
+     <p></p>
     {% from "_formhelpers.html" import render_field %}
     <form method=post>
       <dl>
         {{ render_field(form.select) }}
-        <p>
+
         {{ render_field(form.search) }}
       </dl>
       <p><input type=submit value=Search>
     </form>
+    <br>
+{% endblock %}    

@@ -1,5 +1,7 @@
+import pandas as pd
+import numpy as np
 from app import app, db
-from db_setup import init_db, db_session
+#from db_setup import init_db, db_session
 from forms import BookSearchForm, BookForm, Borrow
 from flask import flash, render_template, request, redirect, url_for
 from flask_login import LoginManager, logout_user, login_required, login_user, current_user
@@ -10,13 +12,13 @@ login.init_app(app)
 login.login_view = 'login'
 
 from datetime import datetime
-from tables import Results, MyBooks
+from tables import Results, MyBooks, Borrowed_Books, df_MyBooks
 from models import User, Book, Book_History
 from login import LoginForm
 from werkzeug.urls import url_parse
 
-init_db()
-
+#init_db()
+@app.route('/', methods=['GET', 'POST'])
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     #if current_user.is_authenticated:
@@ -110,6 +112,48 @@ def mybooks():
         table.border = True
         return render_template('mybooks.html', table=table)
 
+@app.route('/borrowed_books')
+@login_required
+def borrowed_books():
+    results = []
+    qry = db.session.query(Book_History).filter(
+        Book_History.borrower.contains(current_user.username)
+        &(Book_History.status.contains('Borrowed')))
+
+    results = qry.all()
+ 
+    if not results:
+        flash("You have not borrowed any books at this point")
+        return redirect('/index')
+    else:
+        # display results
+        books = []
+        for book_his in results:
+            books.append(db.session.query(Book).filter(
+                Book.id==book_his.book_id).first())
+        table = Borrowed_Books(books)
+        table.border = True
+        return render_template('borrowed_books.html', table=table)
+
+@app.route('/lended_books')
+@login_required
+def Lended_books():
+    results = []
+    qry = db.session.query(Book).filter(
+        Book.lender.contains(current_user.username)
+        &(Book.current_status.contains('Borrowed')))
+
+    results = qry.all()
+ 
+    if not results:
+        flash("No Books of has been borrowed at this point")
+        return redirect('/index')
+    else:
+        # display results
+        table = Borrowed_Books(results)
+        table.border = True
+        return render_template('borrowed_books.html', table=table)
+
 def add_book_history(book, user, book_status):
     """
     Save the changes to the database
@@ -120,6 +164,11 @@ def add_book_history(book, user, book_status):
         book_name = book.book_name, borrowee = current_user, 
         status = book_status, borrow_time=datetime.utcnow())
     db.session.add(book_history)
+    db.session.commit() 
+    if book_status == 'Added':
+        book.current_status = 'Avaiable'
+    else:
+        book.current_status = book_status +" by " + current_user.username.upper()
     db.session.commit() 
 
 @app.route('/borrow/<int:id>', methods=['GET', 'POST'])
@@ -142,13 +191,15 @@ def borrow(id):
                 borrowed_book.borrow_time=datetime.utcnow()
                 db.session.add(borrowed_book)
                 db.session.commit()
+                book.current_status = 'Avaiable'
+                db.session.commit() 
                 flash('Book is made available for others to borrow')
                 return redirect('/mybooks')
             message = """If {} has returned the book press the Returned 
-                button to make it Available""".format(borrowed_book.borrower)
+                button to make it Available""".format(borrowed_book.borrower.upper())
             return render_template('borrow.html', key='Returned', message = message)
         else:
-            flash(borrowed_book.book_name+' has been Borrowed by ' + borrowed_book.borrower)
+            flash(borrowed_book.book_name+' has been already Borrowed by ' + borrowed_book.borrower.upper())
             return search_results(last_search)
 
     else:
@@ -157,11 +208,12 @@ def borrow(id):
             return redirect('/mybooks')  
         else:  
             if request.method == 'POST': 
-                add_book_history(book, current_user, 'Borrowed')       
-                flash('No one has borrowed this Book')
+                add_book_history(book, current_user, 'Borrowed') 
+                      
+                flash('Collect the book from '+book.lender.upper())
                 return redirect('/index')
             message = """Press the borrow button and collect the 
-                    book from {}""".format(book.lender)
+                    book from {}""".format(book.lender.upper())
             return render_template('borrow.html', key='Borrow', message = message)
 
 @app.route('/new_book', methods=['GET', 'POST'])

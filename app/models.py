@@ -50,7 +50,7 @@ class User(UserMixin, db.Model):
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
-  
+
 class Book(db.Model):
     """"""
     __tablename__ = "books"
@@ -61,6 +61,7 @@ class Book(db.Model):
     author = db.Column(db.String(140))
     genre = db.Column(db.String(140))
     summary = db.Column(db.String(140))
+    current_status = db.Column(db.String(140))
     status = db.relationship(
         'Book', secondary=Book_History.__table__,
         primaryjoin=(Book_History.book_id == id),
