@@ -6,6 +6,9 @@ from forms import BookSearchForm, BookForm, Borrow
 from flask import flash, render_template, request, redirect, url_for
 from flask_login import LoginManager, logout_user, login_required, login_user, current_user
 from sqlalchemy import Column, Date, Integer, String
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 login = LoginManager()
 login.init_app(app)
@@ -55,6 +58,20 @@ def index():
  
     return render_template('index.html', form=search)
  
+def mailer(receiver_list, subject, mail_text):
+    sender = "ptoplib@gmail.com"
+    recipients = receiver_list
+    msg = MIMEMultipart('multipart')
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] =  ", ".join(recipients)
+    part1 = MIMEText(mail_text, 'plain')
+    msg.attach(part1)
+    s = smtplib.SMTP('smtp.gmail.com')
+    s.starttls()
+    s.login('ptoplib@gmail.com', 'hackday@2018')
+    s.sendmail(sender, recipients, msg.as_string())
+    s.quit()
 
 @app.route('/results')
 def search_results(search = None):
@@ -193,7 +210,12 @@ def borrow(id):
                 db.session.commit()
                 book.current_status = 'Avaiable'
                 db.session.commit() 
-                flash('Book is made available for others to borrow')
+                borrow_user = db.session.query(User).filter(User.username==borrowed_book.borrower).first()
+                mail_receiver = [borrow_user.email, current_user.email]
+                mail_subject = "PtoP book return confirmation"
+                mail_text = "{} has returned book {} to {}".format(borrow_user.username.upper(), book.book_name, current_user.username.upper())
+                mailer(mail_receiver, mail_subject, mail_text)
+                flash('"'+book.book_name+ '" is made available for others to borrow')
                 return redirect('/mybooks')
             message = """If {} has returned the book press the Returned 
                 button to make it Available""".format(borrowed_book.borrower.upper())
@@ -209,8 +231,11 @@ def borrow(id):
         else:  
             if request.method == 'POST': 
                 add_book_history(book, current_user, 'Borrowed') 
-                      
-                flash('Collect the book from '+book.lender.upper())
+                mail_receiver = [db.session.query(User).filter(User.username==book.lender).first().email]
+                mail_subject = "PtoP book Borrowing Request"
+                mail_text = '{} wants to borrow "{}" book, please lend the book'.format(current_user.username.upper(), book.book_name)
+                mailer(mail_receiver, mail_subject, mail_text)
+                flash(book.lender.upper()+ ' has been notified, Collect "' + book.book_name + '"')
                 return redirect('/index')
             message = """Press the borrow button and collect the 
                     book from {}""".format(book.lender.upper())

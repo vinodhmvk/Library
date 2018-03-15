@@ -23,6 +23,10 @@ USER_DICT = {'vinodh':'vmotupalli@kabbage.com',
     'varun':'vnathan@kabbage.com',
         'ravi':'rcahar@kabbage.com',
         'nitin':'nrawat@kabbage.com'}
+USER_DICT = {'sushant':'sverma@kabbage.com',
+    'abhishek':'absingh@kabbage.com',
+        'karthik':'kchouchan@kabbage.com',
+        'Raghavendra':'romkar@kabbage.com'}
 for name, mailid in USER_DICT.items():
     u = User(username=name, email=mailid)
     u.set_password(name)
