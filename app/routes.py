@@ -183,7 +183,7 @@ def add_book_history(book, user, book_status):
     db.session.add(book_history)
     db.session.commit() 
     if book_status == 'Added':
-        book.current_status = 'Avaiable'
+        book.current_status = 'Available'
     else:
         book.current_status = book_status +" by " + current_user.username.upper()
     db.session.commit() 
@@ -208,7 +208,7 @@ def borrow(id):
                 borrowed_book.borrow_time=datetime.utcnow()
                 db.session.add(borrowed_book)
                 db.session.commit()
-                book.current_status = 'Avaiable'
+                book.current_status = 'Available'
                 db.session.commit() 
                 borrow_user = db.session.query(User).filter(User.username==borrowed_book.borrower).first()
                 mail_receiver = [borrow_user.email, current_user.email]

@@ -21,8 +21,8 @@
                     {% if current_user.username %}
                     <li><a href="{{ url_for('index') }}">{{ ('Home') }}</a></li>
                     <li><a href="{{ url_for('mybooks') }}" >{{ ('My Books') }}</a></li>
-                    <li><a href="{{ url_for('borrowed_books') }}">{{ ('Books You Have Borrowed') }}</a></li>
-                    <li><a href="{{ url_for('Lended_books') }}">{{ ('Books You Have Lended') }}</a></li>
+                    <li><a href="{{ url_for('borrowed_books') }}">{{ ('Borrowed Books') }}</a></li>
+                    <li><a href="{{ url_for('Lended_books') }}">{{ ('Lent Books') }}</a></li>
                     {% endif %}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
