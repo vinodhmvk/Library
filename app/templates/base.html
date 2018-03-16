@@ -1,11 +1,11 @@
 {% extends 'bootstrap/base.html' %}
 
 {% block title %}
-    {% if title %}{{ title }} - PtoP{% else %}{{ ('Welcome to P to P  Library') }}{% endif %}
+    {% if title %}PtoP - {{ title }}{% else %}{{ ('PtoP - Welcome to Peer to Peer  Library') }}{% endif %}
 {% endblock %}
 
 {% block navbar %}
-    <nav class="navbar navbar-default">
+    <nav class="navbar fixed-top navbar-default">
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
@@ -18,9 +18,9 @@
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('index') }}">{{ ('Home') }}</a></li>
                     {% if current_user.username %}
-                    <li><a class="btn btn-link" href="{{ url_for('mybooks') }}" role="button">{{ ('My Books') }}</a></li>
+                    <li><a href="{{ url_for('index') }}">{{ ('Home') }}</a></li>
+                    <li><a href="{{ url_for('mybooks') }}" >{{ ('My Books') }}</a></li>
                     <li><a href="{{ url_for('borrowed_books') }}">{{ ('Books You Have Borrowed') }}</a></li>
                     <li><a href="{{ url_for('Lended_books') }}">{{ ('Books You Have Lended') }}</a></li>
                     {% endif %}
@@ -51,6 +51,3 @@
         {% block app_content %}{% endblock %}
     </div>
 {% endblock %}
-<!--
-
--->

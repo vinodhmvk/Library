@@ -4,7 +4,7 @@
 {% block app_content %}
 <doctype html>
     <h2>Peer to Peer Library</h2>
-    <h3>Hi, {{ current_user.username }}!</h3>
+    <h3>Hi, {{ current_user.username.upper() }}!</h3>
 
     <a class="btn btn-success" href="{{ url_for('.new_book') }}" role="button">{{ ('Add New Book') }}</a>
      <p></p>

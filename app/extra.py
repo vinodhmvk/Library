@@ -32,3 +32,31 @@ for name, mailid in USER_DICT.items():
     u.set_password(name)
     db.session.add(u)
     db.session.commit()
+
+
+            <div class="row">
+        <div class="col-md-4">
+            <table class="table table-striped" id="owned_stock_table">
+            <thead>
+                <tr>
+                <th>Lender</th>
+                <th>Book Name</th>
+                <th>Author</th>
+                <th>Genre</th>
+                <th>Summary</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recipe in table %}
+                <tr>
+                <td>{{ recipe.lender }}</td>
+                <td>{{ recipe.book_name }}</td>
+                <td>{{ recipe.author }}</td>
+                <td>{{ recipe.genre }}</td>
+                <td>{{ recipe.summary }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+        </div>
+        </div>
